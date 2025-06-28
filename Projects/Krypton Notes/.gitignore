@@ -1,0 +1,70 @@
+# Xcode
+#
+# gitignore contributors: remember to keep this file simple and straightforward
+# See https://github.com/github/gitignore/blob/main/Global/Xcode.gitignore
+
+## User-specific files
+*.DS_Store
+.AppleDouble
+.LSOverride
+
+# Build generated
+build/
+DerivedData/
+
+# Various settings
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+
+# Other
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+## Swift Package Manager
+#
+# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
+# Packages/
+# Package.pins
+# Package.resolved
+# .swiftpm/
+
+## Carthage
+#
+# Add this line if you want to avoid checking in source code from Carthage dependencies.
+# Carthage/Checkouts
+Carthage/Build
+
+## Accio
+#
+# Add this line if you want to avoid checking in source code from Accio dependencies.
+# Dependencies/
+# .accio/
+
+# fastlane
+#
+# It is recommended to not store sensitive data in this repository.
+# All sensitive data should be stored in environment variables.
+# More information: https://docs.fastlane.tools/best-practices/source-control/
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Cocoapods
+#
+# We recommend against adding the Pods directory to your .gitignore. However
+# you should judge for yourself, the pros and cons are mentioned at:
+# https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
+#
+# Pods/
+#
+# Add this line if you want to avoid checking in source code from the Xcode workspace
+# *.xcworkspace
