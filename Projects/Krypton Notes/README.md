@@ -24,12 +24,13 @@
 
 ## Download & Install
 
-The easiest way to get the app is to download the latest pre-built release.
+To get the latest version of Krypton Notes, please visit the official **[GitHub Releases](https://github.com/dunamismax/Swift/releases)** page.
 
-1. **[Download the latest DMG from the project directory.](https://github.com/dunamismax/Swift/raw/main/Projects/Krypton%20Notes/Krypton%20Notes-v1.0.dmg)**
-2. Double-click the downloaded `.dmg` file to open it.
-3. Drag the **Krypton Notes** app icon into your **Applications** folder.
-4. Launch the app from your Applications folder.
+1. Navigate to the [**releases page**](https://github.com/dunamismax/Swift/releases).
+2. Download the latest `.dmg` file from the "Assets" section of the most recent release.
+3. Double-click the downloaded `.dmg` file to open it.
+4. Drag the **Krypton Notes** app icon into your **Applications** folder.
+5. Launch the app from your Applications folder.
 
 ## Features
 

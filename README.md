@@ -40,6 +40,12 @@ Swift/
 
 ---
 
+## 🚀 Downloads
+
+To download the latest release of any application in this repository, please visit the official **[GitHub Releases](https://github.com/dunamismax/Swift/releases)** page.
+
+---
+
 ## Projects
 
 Below is a list of the projects contained within this repository. Click on a project to navigate to its dedicated directory and `README` file for more information.
