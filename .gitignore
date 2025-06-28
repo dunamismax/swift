@@ -7,6 +7,8 @@
 # --- macOS & System Files ---
 # These are invisible files created by the macOS Finder and other system processes.
 # They should always be ignored.
+.DS_Store*
+*.DS_Store
 .DS_Store
 .AppleDouble
 .LSOverride
