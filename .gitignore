@@ -24,7 +24,6 @@ Thumbs.db
 build/
 .build/
 *.app
-*.dmg
 *.pkg
 
 
