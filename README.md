@@ -40,7 +40,7 @@ Swift/
 
 ---
 
-## 🚀 Projects
+## Projects
 
 Below is a list of the projects contained within this repository. Click on a project to navigate to its dedicated directory and `README` file for more information.
 
@@ -58,7 +58,7 @@ A secure, end-to-end encrypted, and feature-rich note-taking application designe
 
 ---
 
-## ❤️ Contribute
+## Contribute
 
 Contributions are welcome and greatly appreciated! Whether it's reporting a bug, suggesting a new feature, or submitting a pull request, your input is valuable.
 
@@ -78,6 +78,6 @@ Connect with the author, **dunamismax**, on:
 - **Discord:** `dunamismax`
 - **Signal:** `dunamismax.66`
 
-## 📜 License
+## License
 
 This repository and the projects within it are licensed under the **MIT License**. See the `LICENSE` file for more details.
