@@ -40,7 +40,7 @@ Swift/
 
 ---
 
-## 🚀 Downloads
+## Downloads
 
 To download the latest release of any application in this repository, please visit the official **[GitHub Releases](https://github.com/dunamismax/Swift/releases)** page.
 
