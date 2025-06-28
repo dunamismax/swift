@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/dunamismax/Swift/main/Projects/Krypton%20Notes/Krypton-Notes-App-Screenshot.png" alt="App Screenshot" width="700">
+  <img src="https://github.com/dunamismax/Swift/blob/main/Projects/Krypton%20Notes/Krypton-Notes-Screenshot.png" width="700">
 </p>
 
 <p align="center">
