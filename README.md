@@ -60,6 +60,16 @@ A secure, end-to-end encrypted, and feature-rich note-taking application designe
   </a>
 </p>
 
+### [MacOS Stereo to 5.1 Upmixer](https://github.com/dunamismax/Swift/tree/main/Projects/MacOS-Stereo-to-5.1-Upmixer)
+
+A user-friendly, native macOS application to upmix stereo audio files to 5.1 surround sound. Click "Select Files" and upmix!
+
+<p align="center">
+  <a href="https://github.com/dunamismax/Swift/tree/main/Projects/MacOS-Stereo-to-5.1-Upmixer">
+    <img src="https://github.com/dunamismax/Swift/blob/main/Projects/MacOS-Stereo-to-5.1-Upmixer/assets/app-screenshot-v3.png?raw=true" width="500">
+  </a>
+</p>
+
 <!-- When adding a new project, copy the format above -->
 
 ---
