@@ -50,7 +50,9 @@ Below is a list of the projects contained within this repository. Click on a pro
 
 A powerful, native macOS application that transforms stereo audio files into immersive surround sound formats including 5.1, 7.1 PCM, DTS Master Audio, and Dolby Atmos. Features drag & drop functionality, batch processing, and smart file detection.
 
-![Stereo Upmixer Suite](https://github.com/dunamismax/images/blob/main/swift/Stereo%20Upmixer%20Suite.png)
+<p align="center">
+  <img src="https://github.com/dunamismax/images/blob/main/swift/Stereo%20Upmixer%20Suite.png" alt="Stereo Upmixer Suite" width="200">
+</p>
 
 ## Contributing
 
