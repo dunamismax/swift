@@ -3,15 +3,15 @@
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com/?font=Fira+Code&size=24&pause=1000&color=00A6F3&center=true&vCenter=true&width=900&lines=The+Swift+Development+Hub;Native+SwiftUI+Applications+for+Apple+Ecosystem;macOS+and+iOS+Native+App+Development;Immersive+Audio+Processing+with+FFmpeg;Drag+%26+Drop+Interfaces+and+Batch+Processing;Surround+Sound+Upmixing+Technology;Security-First+Sandboxed+Applications;Modern+Swift+Architecture+Patterns;Apple+Silicon+Optimized+Performance;Cross-Platform+Audio+Innovation" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com/?font=Fira+Code&size=24&pause=1000&color=00A6F3&center=true&vCenter=true&width=900&lines=Professional+Audio+Processing+Suite;High-Resolution+Blu-ray+Audio+Creation;Stereo+to+Surround+Sound+Upmixing;24-bit+96kHz+and+192kHz+Support;32-bit+Float+Studio+Quality;Dolby+Atmos+and+DTS+Master+Audio;Native+macOS+SwiftUI+Architecture;Security-Scoped+Drag+and+Drop;Batch+Processing+with+FFmpeg;Modern+Swift+Concurrency" alt="Typing SVG" />
 </p>
 
 # Swift Projects
 
-A collection of personal Swift, SwiftUI, iOS, and macOS applications. This repository serves as a central hub for development adventures in the Apple ecosystem.
+A collection of professional Swift applications focused on audio processing and media creation. This repository showcases modern SwiftUI development with emphasis on high-quality audio production tools.
 
 ![Swift](https://img.shields.io/badge/Language-Swift-orange.svg)
-![Platform](https://img.shields.io/badge/Platform-macOS%20|%20iOS-lightgrey.svg)
+![Platform](https://img.shields.io/badge/Platform-macOS-lightgrey.svg)
 ![SwiftUI](https://img.shields.io/badge/Framework-SwiftUI-blue.svg)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/dunamismax/Swift/blob/main/LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dunamismax/Swift/pulls)
@@ -48,7 +48,7 @@ Below is a list of the projects contained within this repository. Click on a pro
 
 ### Stereo Upmixer Suite
 
-A powerful, native macOS application that transforms stereo audio files into immersive surround sound formats including 5.1, 7.1 PCM, DTS Master Audio, and Dolby Atmos. Features drag & drop functionality, batch processing, and smart file detection.
+A professional macOS application for creating high-resolution surround sound from stereo sources. Transforms stereo audio into 5.1, 7.1 PCM, DTS Master Audio, and Dolby Atmos formats with support for multiple quality presets from CD quality (16-bit/44.1kHz) to studio float (32-bit/192kHz). Features advanced security-scoped drag & drop, batch processing, and comprehensive format support optimized for blu-ray audio production.
 
 <p align="center">
   <img src="https://github.com/dunamismax/images/blob/main/swift/Stereo%20Upmixer%20Suite.png" alt="Stereo Upmixer Suite" width="600">
