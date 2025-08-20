@@ -23,7 +23,7 @@ struct UpmixView: View {
                 }
             )
             
-            FormatSelectionView(selectedFormat: $upmixer.selectedFormat)
+            FormatSelectionView(selectedFormat: $upmixer.selectedFormat, selectedQuality: $upmixer.selectedQuality)
             
             StatusBarView(status: upmixer.status, progress: upmixer.progress)
             
@@ -38,10 +38,11 @@ struct UpmixView: View {
                 isUpmixing: upmixer.isUpmixing,
                 canUpmix: !upmixer.files.isEmpty && !upmixer.isUpmixing && upmixer.outputDirectory != nil,
                 canClear: !upmixer.files.isEmpty && !upmixer.isUpmixing,
-                selectedFormat: upmixer.selectedFormat
+                selectedFormat: upmixer.selectedFormat,
+                selectedQuality: upmixer.selectedQuality
             )
         }
-        .frame(minWidth: 500, minHeight: 540)
+        .frame(minWidth: 700, minHeight: 540)
         .background(Color.theme.background)
         .fileImporter(
             isPresented: $isFileImporterPresented,
@@ -93,12 +94,22 @@ struct UpmixView: View {
     private func handleFilesDropped(urls: [URL]) {
         var audioUrls: [URL] = []
         var hasDirectories = false
+        var urlsToStopAccessing: [URL] = []
+        
+        defer {
+            // Stop accessing security-scoped resources for dropped URLs
+            for url in urlsToStopAccessing {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
         
         for url in urls {
             var isDirectory: ObjCBool = false
             if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) {
                 if isDirectory.boolValue {
                     hasDirectories = true
+                    urlsToStopAccessing.append(url)
+                    
                     // Recursively find audio files in directory
                     if let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles]) {
                         for case let fileURL as URL in enumerator {
@@ -109,11 +120,14 @@ struct UpmixView: View {
                     }
                 } else if isAudioFile(url: url) {
                     audioUrls.append(url)
+                    urlsToStopAccessing.append(url)
                 }
+            } else {
+                urlsToStopAccessing.append(url)
             }
         }
         
-        // Add found audio files
+        // Add found audio files (addFile will create new security-scoped bookmarks)
         for audioUrl in audioUrls {
             upmixer.addFile(url: audioUrl)
         }
@@ -126,7 +140,7 @@ struct UpmixView: View {
     }
     
     private func isAudioFile(url: URL) -> Bool {
-        let audioExtensions = ["mp3", "wav", "flac", "aac", "m4a", "ogg", "wma", "aiff", "au"]
+        let audioExtensions = ["mp3", "wav", "flac", "aac", "m4a", "ogg", "wma", "aiff", "au", "ac3", "dts", "mka", "opus", "ape", "caf"]
         let fileExtension = url.pathExtension.lowercased()
         return audioExtensions.contains(fileExtension)
     }
@@ -152,7 +166,7 @@ struct HeaderView: View {
             Text("Stereo Upmixer Suite")
                 .font(.largeTitle.weight(.bold))
                 .foregroundColor(Color.theme.text)
-            Text("Click 'Select Files' or drag files into the window")
+            Text("Click 'Select Files' or drag audio files/folders into the window")
                 .font(.headline)
                 .foregroundColor(Color.theme.secondaryText)
         }
@@ -181,7 +195,7 @@ struct FileListView: View {
                 VStack {
                     Image(systemName: "music.note.list")
                         .font(.largeTitle)
-                    Text("Drop audio files here or click 'Select Files'")
+                    Text("Drop audio files or folders here, or click 'Select Files'")
                         .font(.headline)
                         .multilineTextAlignment(.center)
                 }
@@ -214,7 +228,15 @@ struct FileListView: View {
                 _ = provider.loadObject(ofClass: URL.self) { url, error in
                     defer { group.leave() }
                     if let url = url {
-                        urls.append(url)
+                        // Start accessing security-scoped resource for dropped files
+                        if url.startAccessingSecurityScopedResource() {
+                            urls.append(url)
+                            // Note: We'll stop accessing in handleFilesDropped after creating bookmarks
+                        } else {
+                            print("Warning: Could not access security-scoped resource for dropped file: \(url.lastPathComponent)")
+                            // Try to add the URL anyway in case it's accessible without security scope
+                            urls.append(url)
+                        }
                     }
                 }
             }
@@ -281,6 +303,7 @@ struct OutputDirectoryView: View {
 
 struct FormatSelectionView: View {
     @Binding var selectedFormat: UpmixFormat
+    @Binding var selectedQuality: AudioQuality
     
     var body: some View {
         HStack {
@@ -293,7 +316,20 @@ struct FormatSelectionView: View {
                 }
             }
             .pickerStyle(.menu)
-            .frame(width: 150)
+            .frame(minWidth: 180)
+            
+            Spacer().frame(width: 20)
+            
+            Text("Audio Quality:")
+                .font(.headline)
+            
+            Picker("Quality", selection: $selectedQuality) {
+                ForEach(AudioQuality.allCases, id: \.self) { quality in
+                    Text(quality.displayName).tag(quality)
+                }
+            }
+            .pickerStyle(.menu)
+            .frame(minWidth: 200)
             
             Spacer()
         }
@@ -329,6 +365,7 @@ struct FooterView: View {
     var canUpmix: Bool
     var canClear: Bool
     var selectedFormat: UpmixFormat
+    var selectedQuality: AudioQuality
 
     var body: some View {
         HStack {
@@ -352,7 +389,7 @@ struct FooterView: View {
                 .tint(.red)
             } else {
                 Button(action: onUpmix) {
-                    Text("Upmix to \(selectedFormat.rawValue)")
+                    Text("Upmix to \(selectedFormat.rawValue) (\(selectedQuality.displayName))")
                 }
                 .buttonStyle(.bordered)
                 .disabled(!canUpmix)

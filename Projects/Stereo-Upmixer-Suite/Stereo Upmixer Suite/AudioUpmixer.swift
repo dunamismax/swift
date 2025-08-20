@@ -9,7 +9,7 @@ enum UpmixFormat: String, CaseIterable {
     case surround5_1 = "5.1 Surround"
     case surround7_1 = "7.1 PCM"
     case dtsMasterAudio = "DTS Master Audio"
-    case atmos = "Atmos"
+    case atmos = "Dolby Atmos"
     
     var channels: Int {
         switch self {
@@ -33,7 +33,7 @@ enum UpmixFormat: String, CaseIterable {
         case .dtsMasterAudio:
             return "_DTS-MA"
         case .atmos:
-            return "_Atmos"
+            return "_Dolby_Atmos"
         }
     }
     
@@ -44,7 +44,70 @@ enum UpmixFormat: String, CaseIterable {
         case .dtsMasterAudio:
             return "dts"
         case .atmos:
-            return "flac" // Using FLAC for Atmos bed layer
+            return "flac" // Using FLAC for Dolby Atmos bed layer
+        }
+    }
+}
+
+enum AudioQuality: String, CaseIterable {
+    case cd_quality = "16-bit / 44.1 kHz"
+    case dvd_quality = "24-bit / 48 kHz"
+    case bluray_standard = "24-bit / 96 kHz"
+    case bluray_premium = "24-bit / 192 kHz"
+    case studio_float = "32-bit Float / 96 kHz"
+    case studio_float_192 = "32-bit Float / 192 kHz"
+    
+    var bitDepth: String {
+        switch self {
+        case .cd_quality:
+            return "16"
+        case .dvd_quality, .bluray_standard, .bluray_premium:
+            return "24"
+        case .studio_float, .studio_float_192:
+            return "32"
+        }
+    }
+    
+    var sampleRate: String {
+        switch self {
+        case .cd_quality:
+            return "44100"
+        case .dvd_quality:
+            return "48000"
+        case .bluray_standard, .studio_float:
+            return "96000"
+        case .bluray_premium, .studio_float_192:
+            return "192000"
+        }
+    }
+    
+    var isFloat: Bool {
+        switch self {
+        case .studio_float, .studio_float_192:
+            return true
+        default:
+            return false
+        }
+    }
+    
+    var displayName: String {
+        return rawValue
+    }
+    
+    var fileSuffix: String {
+        switch self {
+        case .cd_quality:
+            return "_16-44"
+        case .dvd_quality:
+            return "_24-48"
+        case .bluray_standard:
+            return "_24-96"
+        case .bluray_premium:
+            return "_24-192"
+        case .studio_float:
+            return "_32f-96"
+        case .studio_float_192:
+            return "_32f-192"
         }
     }
 }
@@ -129,6 +192,7 @@ class AudioUpmixer: ObservableObject {
     @Published var errorMessage: String?
     @Published var outputDirectory: BookmarkedURL?
     @Published var selectedFormat: UpmixFormat = .surround5_1
+    @Published var selectedQuality: AudioQuality = .bluray_standard
 
     private var ffmpegPath: String?
     private var currentProcess: Process?
@@ -136,6 +200,15 @@ class AudioUpmixer: ObservableObject {
 
     init() {
         self.ffmpegPath = Bundle.main.path(forResource: "ffmpeg", ofType: nil)
+        validateFFmpegAvailability()
+    }
+    
+    private func validateFFmpegAvailability() {
+        if ffmpegPath == nil {
+            status = "Warning: FFmpeg not found in app bundle"
+        } else if let path = ffmpegPath, !FileManager.default.isExecutableFile(atPath: path) {
+            status = "Warning: FFmpeg is not executable"
+        }
     }
 
     // MARK: - Public Methods
@@ -156,11 +229,21 @@ class AudioUpmixer: ObservableObject {
     }
     
     func addFile(url: URL) {
-        guard url.startAccessingSecurityScopedResource() else {
-            handleError(UpmixError.bookmarkFailed)
-            return
+        // Check if already accessing security scope (from drag & drop)
+        let wasAlreadyAccessing = url.path.hasPrefix("/")
+        
+        if !wasAlreadyAccessing {
+            guard url.startAccessingSecurityScopedResource() else {
+                handleError(UpmixError.bookmarkFailed)
+                return
+            }
         }
-        defer { url.stopAccessingSecurityScopedResource() }
+        
+        defer {
+            if !wasAlreadyAccessing {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
         
         do {
             let bookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
@@ -170,7 +253,8 @@ class AudioUpmixer: ObservableObject {
                 files.append(AudioFile(bookmarkedURL: bookmarkedURL))
             }
         } catch {
-            handleError(UpmixError.bookmarkFailed)
+            let errorMsg = "Failed to create security-scoped bookmark for '\(url.lastPathComponent)': \(error.localizedDescription)"
+            handleError(UpmixError.processFailed(errorMsg))
         }
     }
 
@@ -200,7 +284,8 @@ class AudioUpmixer: ObservableObject {
             await processFiles()
             
             if !isCancelled {
-                status = "Upmixing complete."
+                let successCount = files.filter { $0.status == .upmixed }.count
+                status = "Upmixing complete. Successfully processed \(successCount) of \(totalFiles) files."
             }
             isUpmixing = false
         }
@@ -230,7 +315,7 @@ class AudioUpmixer: ObservableObject {
                 continue
             }
             
-            await updateFileStatus(at: i, to: .processing, message: "Upmixing \(file.bookmarkedURL.originalURL.lastPathComponent)...")
+            await updateFileStatus(at: i, to: .processing, message: "Upmixing \(file.bookmarkedURL.originalURL.lastPathComponent) (\(i + 1) of \(totalFiles))...")
 
             do {
                 try await upmix(file: file)
@@ -265,19 +350,33 @@ class AudioUpmixer: ObservableObject {
         }
         defer { outputDirURL.stopAccessingSecurityScopedResource() }
 
-        let outputFileName = file.bookmarkedURL.originalURL.deletingPathExtension().lastPathComponent + selectedFormat.fileSuffix + "." + selectedFormat.codec
+        let outputFileName = file.bookmarkedURL.originalURL.deletingPathExtension().lastPathComponent + selectedFormat.fileSuffix + selectedQuality.fileSuffix + "." + selectedFormat.codec
         let outputURL = outputDirURL.appendingPathComponent(outputFileName)
         
         let filter = createFFmpegFilter(for: selectedFormat)
 
-        let arguments = [
+        var arguments = [
             "-i", file.url.path,
             "-vn",
             "-filter_complex", filter,
-            "-c:a", selectedFormat.codec,
-            "-y",
-            outputURL.path
+            "-c:a", selectedFormat.codec
         ]
+        
+        // Add quality-specific arguments for FLAC files
+        if selectedFormat.codec == "flac" {
+            if selectedQuality.isFloat {
+                arguments.append(contentsOf: ["-sample_fmt", "flt"])
+                arguments.append(contentsOf: ["-ar", selectedQuality.sampleRate])
+            } else {
+                arguments.append(contentsOf: ["-sample_fmt", "s\(selectedQuality.bitDepth)"])
+                arguments.append(contentsOf: ["-ar", selectedQuality.sampleRate])
+            }
+        } else if selectedFormat.codec == "dts" {
+            // For DTS, use PCM with specified bit depth and sample rate
+            arguments.append(contentsOf: ["-ar", selectedQuality.sampleRate])
+        }
+        
+        arguments.append(contentsOf: ["-y", outputURL.path])
 
         currentProcess = Process()
         currentProcess?.executableURL = URL(fileURLWithPath: ffmpegPath)
@@ -320,7 +419,7 @@ class AudioUpmixer: ObservableObject {
             return "[0:a]pan=5.1(side)|FL=FL|FR=FR|FC=0.6*FL+0.6*FR|LFE=0.15*FL+0.15*FR|SL=0.4*FL|SR=0.4*FR"
             
         case .atmos:
-            // Atmos bed layer - using 7.1 as base with enhanced center and surround channels
+            // Dolby Atmos bed layer - using 7.1 as base with enhanced center and surround channels
             return "[0:a]pan=7.1|FL=FL|FR=FR|FC=0.7*FL+0.7*FR|LFE=0.2*FL+0.2*FR|SL=0.4*FL|SR=0.4*FR|BL=0.3*FL|BR=0.3*FR"
         }
     }
@@ -352,7 +451,11 @@ class AudioUpmixer: ObservableObject {
     
     private func resetStatus() {
         progress = 0.0
-        status = "Ready"
+        if ffmpegPath != nil {
+            status = "Ready"
+        } else {
+            status = "Warning: FFmpeg not found"
+        }
         errorMessage = nil
     }
 }
