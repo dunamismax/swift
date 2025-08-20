@@ -5,6 +5,50 @@ import SwiftUI
 
 // MARK: - Enums and Structs
 
+enum UpmixFormat: String, CaseIterable {
+    case surround5_1 = "5.1 Surround"
+    case surround7_1 = "7.1 PCM"
+    case dtsMasterAudio = "DTS Master Audio"
+    case atmos = "Atmos"
+    
+    var channels: Int {
+        switch self {
+        case .surround5_1:
+            return 6
+        case .surround7_1:
+            return 8
+        case .dtsMasterAudio:
+            return 6 // DTS-HD Master Audio typically uses 5.1 or 7.1, we'll use 5.1 as base
+        case .atmos:
+            return 8 // Using 7.1 bed layer for Atmos
+        }
+    }
+    
+    var fileSuffix: String {
+        switch self {
+        case .surround5_1:
+            return "_5.1"
+        case .surround7_1:
+            return "_7.1"
+        case .dtsMasterAudio:
+            return "_DTS-MA"
+        case .atmos:
+            return "_Atmos"
+        }
+    }
+    
+    var codec: String {
+        switch self {
+        case .surround5_1, .surround7_1:
+            return "flac"
+        case .dtsMasterAudio:
+            return "dts"
+        case .atmos:
+            return "flac" // Using FLAC for Atmos bed layer
+        }
+    }
+}
+
 enum FileStatus: String {
     case pending = "Pending"
     case processing = "Processing..."
@@ -84,6 +128,7 @@ class AudioUpmixer: ObservableObject {
     @Published var status: String = "Ready"
     @Published var errorMessage: String?
     @Published var outputDirectory: BookmarkedURL?
+    @Published var selectedFormat: UpmixFormat = .surround5_1
 
     private var ffmpegPath: String?
     private var currentProcess: Process?
@@ -220,16 +265,16 @@ class AudioUpmixer: ObservableObject {
         }
         defer { outputDirURL.stopAccessingSecurityScopedResource() }
 
-        let outputFileName = file.bookmarkedURL.originalURL.deletingPathExtension().lastPathComponent + "_5.1.flac"
+        let outputFileName = file.bookmarkedURL.originalURL.deletingPathExtension().lastPathComponent + selectedFormat.fileSuffix + "." + selectedFormat.codec
         let outputURL = outputDirURL.appendingPathComponent(outputFileName)
         
-        let filter = createFFmpegFilter()
+        let filter = createFFmpegFilter(for: selectedFormat)
 
         let arguments = [
             "-i", file.url.path,
             "-vn",
             "-filter_complex", filter,
-            "-c:a", "flac",
+            "-c:a", selectedFormat.codec,
             "-y",
             outputURL.path
         ]
@@ -260,9 +305,24 @@ class AudioUpmixer: ObservableObject {
         }
     }
     
-    private func createFFmpegFilter() -> String {
-        // A robust pan filter for stereo to 5.1 upmixing.
-        return "[0:a]pan=5.1(side)|FL=FL|FR=FR|FC=0.5*FL+0.5*FR|LFE=0.1*FL+0.1*FR|SL=0.5*FL|SR=0.5*FR"
+    private func createFFmpegFilter(for format: UpmixFormat) -> String {
+        switch format {
+        case .surround5_1:
+            // Standard 5.1 surround sound upmixing
+            return "[0:a]pan=5.1(side)|FL=FL|FR=FR|FC=0.5*FL+0.5*FR|LFE=0.1*FL+0.1*FR|SL=0.5*FL|SR=0.5*FR"
+            
+        case .surround7_1:
+            // 7.1 surround sound upmixing
+            return "[0:a]pan=7.1|FL=FL|FR=FR|FC=0.5*FL+0.5*FR|LFE=0.1*FL+0.1*FR|SL=0.3*FL|SR=0.3*FR|BL=0.2*FL|BR=0.2*FR"
+            
+        case .dtsMasterAudio:
+            // DTS Master Audio - using 5.1 layout with optimized channel mapping
+            return "[0:a]pan=5.1(side)|FL=FL|FR=FR|FC=0.6*FL+0.6*FR|LFE=0.15*FL+0.15*FR|SL=0.4*FL|SR=0.4*FR"
+            
+        case .atmos:
+            // Atmos bed layer - using 7.1 as base with enhanced center and surround channels
+            return "[0:a]pan=7.1|FL=FL|FR=FR|FC=0.7*FL+0.7*FR|LFE=0.2*FL+0.2*FR|SL=0.4*FL|SR=0.4*FR|BL=0.3*FL|BR=0.3*FR"
+        }
     }
     
     private func handleCancellation(from index: Int) async {

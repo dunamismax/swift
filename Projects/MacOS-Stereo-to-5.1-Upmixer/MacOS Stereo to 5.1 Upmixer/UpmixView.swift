@@ -11,7 +11,9 @@ struct UpmixView: View {
         VStack(spacing: 0) {
             HeaderView()
             
-            FileListView(files: $upmixer.files)
+            FileListView(files: $upmixer.files) { urls in
+                handleFilesDropped(urls: urls)
+            }
             
             OutputDirectoryView(
                 outputDirectory: upmixer.outputDirectory?.originalURL,
@@ -20,6 +22,8 @@ struct UpmixView: View {
                     isFileImporterPresented = true
                 }
             )
+            
+            FormatSelectionView(selectedFormat: $upmixer.selectedFormat)
             
             StatusBarView(status: upmixer.status, progress: upmixer.progress)
             
@@ -33,7 +37,8 @@ struct UpmixView: View {
                 onCancel: { upmixer.cancelUpmixing() },
                 isUpmixing: upmixer.isUpmixing,
                 canUpmix: !upmixer.files.isEmpty && !upmixer.isUpmixing && upmixer.outputDirectory != nil,
-                canClear: !upmixer.files.isEmpty && !upmixer.isUpmixing
+                canClear: !upmixer.files.isEmpty && !upmixer.isUpmixing,
+                selectedFormat: upmixer.selectedFormat
             )
         }
         .frame(minWidth: 500, minHeight: 540)
@@ -84,6 +89,47 @@ struct UpmixView: View {
             upmixer.errorMessage = "Failed to select directory: \(error.localizedDescription)"
         }
     }
+    
+    private func handleFilesDropped(urls: [URL]) {
+        var audioUrls: [URL] = []
+        var hasDirectories = false
+        
+        for url in urls {
+            var isDirectory: ObjCBool = false
+            if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) {
+                if isDirectory.boolValue {
+                    hasDirectories = true
+                    // Recursively find audio files in directory
+                    if let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles]) {
+                        for case let fileURL as URL in enumerator {
+                            if isAudioFile(url: fileURL) {
+                                audioUrls.append(fileURL)
+                            }
+                        }
+                    }
+                } else if isAudioFile(url: url) {
+                    audioUrls.append(url)
+                }
+            }
+        }
+        
+        // Add found audio files
+        for audioUrl in audioUrls {
+            upmixer.addFile(url: audioUrl)
+        }
+        
+        if audioUrls.isEmpty && !hasDirectories {
+            upmixer.errorMessage = "No supported audio files found in the dropped items."
+        } else if audioUrls.isEmpty && hasDirectories {
+            upmixer.errorMessage = "No supported audio files found in the dropped directories."
+        }
+    }
+    
+    private func isAudioFile(url: URL) -> Bool {
+        let audioExtensions = ["mp3", "wav", "flac", "aac", "m4a", "ogg", "wma", "aiff", "au"]
+        let fileExtension = url.pathExtension.lowercased()
+        return audioExtensions.contains(fileExtension)
+    }
 }
 
 private struct ImporterConfig {
@@ -103,10 +149,10 @@ private struct ImporterConfig {
 struct HeaderView: View {
     var body: some View {
         VStack {
-            Text("Stereo to 5.1 Upmixer")
+            Text("Stereo Upmixer Suite")
                 .font(.largeTitle.weight(.bold))
                 .foregroundColor(Color.theme.text)
-            Text("Click the 'Select Files' button to begin")
+            Text("Click 'Select Files' or drag files into the window")
                 .font(.headline)
                 .foregroundColor(Color.theme.secondaryText)
         }
@@ -117,6 +163,9 @@ struct HeaderView: View {
 
 struct FileListView: View {
     @Binding var files: [AudioFile]
+    var onFilesDropped: ([URL]) -> Void
+    
+    @State private var isDropTargeted = false
     
     var body: some View {
         ZStack {
@@ -126,14 +175,15 @@ struct FileListView: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
-                            .foregroundColor(Color.theme.dropTargetBorder)
+                            .foregroundColor(isDropTargeted ? Color.theme.accent : Color.theme.dropTargetBorder)
                     )
                 
                 VStack {
                     Image(systemName: "music.note.list")
                         .font(.largeTitle)
-                    Text("No files selected")
+                    Text("Drop audio files here or click 'Select Files'")
                         .font(.headline)
+                        .multilineTextAlignment(.center)
                 }
                 .foregroundColor(Color.theme.secondaryText)
             } else {
@@ -149,6 +199,34 @@ struct FileListView: View {
         }
         .padding()
         .frame(maxHeight: .infinity)
+        .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
+            handleDrop(providers: providers)
+        }
+    }
+    
+    private func handleDrop(providers: [NSItemProvider]) -> Bool {
+        var urls: [URL] = []
+        let group = DispatchGroup()
+        
+        for provider in providers {
+            if provider.canLoadObject(ofClass: URL.self) {
+                group.enter()
+                provider.loadObject(ofClass: URL.self) { url, error in
+                    defer { group.leave() }
+                    if let url = url {
+                        urls.append(url)
+                    }
+                }
+            }
+        }
+        
+        group.notify(queue: .main) {
+            if !urls.isEmpty {
+                onFilesDropped(urls)
+            }
+        }
+        
+        return !providers.isEmpty
     }
 }
 
@@ -201,6 +279,28 @@ struct OutputDirectoryView: View {
     }
 }
 
+struct FormatSelectionView: View {
+    @Binding var selectedFormat: UpmixFormat
+    
+    var body: some View {
+        HStack {
+            Text("Upmix Format:")
+                .font(.headline)
+            
+            Picker("Format", selection: $selectedFormat) {
+                ForEach(UpmixFormat.allCases, id: \.self) { format in
+                    Text(format.rawValue).tag(format)
+                }
+            }
+            .pickerStyle(.menu)
+            .frame(width: 150)
+            
+            Spacer()
+        }
+        .padding()
+    }
+}
+
 struct StatusBarView: View {
     let status: String
     let progress: Double
@@ -228,6 +328,7 @@ struct FooterView: View {
     var isUpmixing: Bool
     var canUpmix: Bool
     var canClear: Bool
+    var selectedFormat: UpmixFormat
 
     var body: some View {
         HStack {
@@ -251,7 +352,7 @@ struct FooterView: View {
                 .tint(.red)
             } else {
                 Button(action: onUpmix) {
-                    Text("Upmix to 5.1")
+                    Text("Upmix to \(selectedFormat.rawValue)")
                 }
                 .buttonStyle(.bordered)
                 .disabled(!canUpmix)

@@ -1,9 +1,9 @@
-<h1 align="center">macOS Stereo to 5.1 Audio Upmixer</h1>
+<h1 align="center">Stereo Upmixer Suite</h1>
 
 <p align="center">
-  A user-friendly, native macOS application to upmix stereo audio files to 5.1 surround sound.
+  A user-friendly, native macOS application to upmix stereo audio files to various surround sound formats including 5.1, 7.1 PCM, DTS Master Audio, and Atmos.
   <br />
-  Click "Select Files" and upmix!
+  Click "Select Files", choose your format, and upmix!
 </p>
 
 <p align="center">
@@ -24,42 +24,46 @@
 
 ## Download & Install
 
-To get the latest version of **MacOS Stereo to 5.1 Upmixer**, please visit the official **[GitHub Releases](https://github.com/dunamismax/Swift/releases)** page for the main Swift repository.
+To get the latest version of **Stereo Upmixer Suite**, please visit the official **[GitHub Releases](https://github.com/dunamismax/Swift/releases)** page for the main Swift repository.
 
 1. Navigate to the [**releases page**](https://github.com/dunamismax/Swift/releases).
-2. Download the latest `.dmg` file for the **Upmixer** from the "Assets" section of the most recent release.
+2. Download the latest `.dmg` file for the **Stereo Upmixer Suite** from the "Assets" section of the most recent release.
 3. Double-click the downloaded `.dmg` file to open it.
-4. Drag the **MacOS Stereo to 5.1 Upmixer** app icon into your **Applications** folder.
+4. Drag the **Stereo Upmixer Suite** app icon into your **Applications** folder.
 5. Launch the app from your Applications folder.
 
 ## How to Use
 
 1. **Launch the app.**
-2. Click **"Select Files"** to add your stereo audio files.
+2. Click **"Select Files"** to add your stereo audio files, or drag files/folders directly into the window.
 3. Click **"Output To"** to choose a destination folder for your upmixed files.
-4. Click **"Upmix to 5.1"** to start the process.
+4. Select your desired **"Upmix Format"** from the dropdown (5.1 Surround, 7.1 PCM, DTS Master Audio, or Atmos).
+5. Click **"Upmix to [Selected Format]"** to start the process.
 
-The new 5.1 surround sound files will be saved in the output directory you selected with the suffix `_5.1.flac`.
+The new surround sound files will be saved in the output directory you selected with appropriate suffixes like `_5.1.flac`, `_7.1.flac`, `_DTS-MA.dts`, or `_Atmos.flac`.
 
 ## Features
 
-- **Intuitive Interface**: Simple file selection and a clear workflow.
-- **Custom Output Directory**: Choose where to save your upmixed files.
-- **Batch Processing**: Upmix multiple files at once.
-- **Real-Time Feedback**: See the status of each file and a master progress bar.
-- **Cancellable Operation**: Stop the upmixing process at any time.
-- **Error Handling**: Clear alerts for common issues (e.g., failed processing).
-- **Native Look & Feel**: Built with SwiftUI for a modern macOS experience.
-- **Self-Contained**: `ffmpeg` is bundled with the app, so no extra setup is needed.
+- **Multiple Format Support**: Choose from 5.1 Surround, 7.1 PCM, DTS Master Audio, and Atmos formats
+- **Drag & Drop Interface**: Simply drag audio files or folders directly into the app window
+- **Intuitive Interface**: Simple file selection and a clear workflow
+- **Custom Output Directory**: Choose where to save your upmixed files
+- **Batch Processing**: Upmix multiple files at once
+- **Real-Time Feedback**: See the status of each file and a master progress bar
+- **Cancellable Operation**: Stop the upmixing process at any time
+- **Error Handling**: Clear alerts for common issues (e.g., failed processing)
+- **Native Look & Feel**: Built with SwiftUI for a modern macOS experience
+- **Self-Contained**: `ffmpeg` is bundled with the app, so no extra setup is needed
 
 ---
 
-## Listening to 5.1 Audio
+## Listening to Surround Audio
 
-To properly play back the 6-channel audio files, you will need:
+To properly play back the multi-channel audio files, you will need:
 
-- A media player that supports multi-channel FLAC, such as **VLC** or **IINA**.
-- An audio system capable of playing 5.1 surround sound, like an A/V receiver or compatible headphones.
+- A media player that supports multi-channel FLAC/DTS, such as **VLC** or **IINA**
+- An audio system capable of playing the respective surround format (5.1, 7.1, etc.), like an A/V receiver or compatible headphones
+- For Atmos content, you'll need an Atmos-capable receiver and speaker setup
 
 ---
 
