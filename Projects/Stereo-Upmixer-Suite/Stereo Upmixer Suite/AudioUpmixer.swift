@@ -285,6 +285,7 @@ class AudioUpmixer: ObservableObject {
             
             if !isCancelled {
                 let successCount = files.filter { $0.status == .upmixed }.count
+                let totalFiles = files.count
                 status = "Upmixing complete. Successfully processed \(successCount) of \(totalFiles) files."
             }
             isUpmixing = false
